@@ -1,0 +1,32 @@
+{% load static %}
+<nav class="navbar">
+    <!-- LOGO -->
+    <div class="logo">
+        <a href="{% url 'home' %}">
+            <img src="{% static 'images/logo.svg' %}" alt="logo">
+        </a>
+    </div>
+
+    <!-- NAVIGATION MENU -->
+    <ul class="nav-links">
+
+        <!-- USING CHECKBOX HACK -->
+        <input type="checkbox" id="checkbox_toggle" />
+        <label for="checkbox_toggle" class="hamburger">&#9776;</label>
+
+        <!-- NAVIGATION MENUS -->
+        <div class="menu">
+          <li><a href="{% url 'trim' %}">Trim</a></li>
+          <li><a href="{% url 'split' %}">Split</a></li>
+          <li><a href="{% url 'merge' %}">Merge</a></li>
+        </div>
+    </ul>
+</nav>
+{% if messages %}
+  {% for message in messages %}
+    <div class="popup-error" data-id="{{ forloop.counter }}">
+      <p>{{ message }}</p>
+      <span class="close-button">&times;</span>
+    </div>
+  {% endfor %}
+{% endif %}
