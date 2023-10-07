@@ -6,4 +6,5 @@ urlpatterns=[
     path("trim/",views.trim,name="trim"),
     path("split/",views.split,name="split"),
     path("merge/",views.merge,name="merge"),
+    # path('<str:filepath>/', views.download_file)
 ]

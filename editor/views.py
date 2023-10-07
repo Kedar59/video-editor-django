@@ -4,6 +4,7 @@ from django.core.files.storage import FileSystemStorage
 import re,random,os,time
 from django.contrib import messages
 from django.conf import settings
+import mimetypes
 
 def cleanDir(folder_name):
     dir = os.path.join(settings.MEDIA_ROOT,folder_name)
@@ -14,12 +15,14 @@ def existsDir(folder_name):
     if not os.path.exists(os.path.join(settings.MEDIA_ROOT,folder_name)):
         path=os.path.join(settings.MEDIA_ROOT,folder_name)
         os.mkdir(path)
+
 def getFilePath(foldername,root):
     for file in os.listdir(os.path.join(settings.MEDIA_ROOT,foldername)):
         if root:
             return os.path.join(settings.MEDIA_ROOT,foldername,file)
         else:
             return os.path.join(settings.MEDIA_URL,foldername,file)
+        
 def time_to_seconds(time_str):
     hours, minutes, seconds = map(int, time_str.split(':'))
     total_seconds = hours * 3600 + minutes * 60 + seconds
@@ -36,6 +39,7 @@ def trim_video(input_file, output_file, start_time, end_time):
 
 def home(request):
     return render(request,'editor/home.html')
+
 def trim(request):
     if 'trimed_count' not in request.session:
         request.session['trimed_count'] = 0 
@@ -67,15 +71,22 @@ def trim(request):
             return render(request,'editor/trim.html', context)
         elif 'download' in request.POST:
             trimmed_video_path = getFilePath('temp_trim',True)
-            print(trimmed_video_path)
+
             if trimmed_video_path:
                 with open(trimmed_video_path, 'rb') as video_file:
                     # Use FileResponse to send the file for download
-                    response = FileResponse(video_file)
+                    # response = FileResponse(video_file)
                     # Set content type for the response
-                    response['Content-Type'] = 'video/mp4'
+                    # response['Content-Type'] = 'video/mp4'
                     # Set content-disposition to trigger download
-                    response['Content-Disposition'] = f'attachment; filename="{os.path.basename(trimmed_video_path)}"'
+                    # response['Content-Disposition'] = f'attachment; filename="{os.path.basename(trimmed_video_path)}"'
+
+
+                    fl_path =  trimmed_video_path
+                    filename = os.path.basename(fl_path)  
+                    fl = open(fl_path, 'rb')
+                    response = HttpResponse(fl, content_type='video/mp4')
+                    response['Content-Disposition'] = "attachment; filename=%s" % filename
                     return response
             context={
                 'vid_not_selected':True,
@@ -129,7 +140,9 @@ def trim(request):
         context['not_trimed']=False
         context['video_preview_url']=getFilePath('temp_trim',False)
     return render(request, 'editor/trim.html', context)
+
 def split(request):
     return render(request,'editor/split.html')
+
 def merge(request):
     return render(request,'editor/merge.html')
