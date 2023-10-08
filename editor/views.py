@@ -29,7 +29,7 @@ def time_to_seconds(time_str):
     return total_seconds
 # video editing stuff
 from moviepy.video.io.ffmpeg_tools import ffmpeg_extract_subclip
-from moviepy.editor import VideoFileClip
+from moviepy.editor import VideoFileClip,concatenate_videoclips
 
 def getDuration(input_file_path):
     return VideoFileClip(input_file_path).duration
@@ -173,7 +173,7 @@ def split(request):
                 'part_1':getFilePath(os.path.join('temp_split','part1'),False),
                 'part_2':getFilePath(os.path.join('temp_split','part2'),False)
             }   
-            return render(request,'editor/trim.html',context)
+            return render(request,'editor/split.html',context)
         elif 'download2' in request.POST:
             split_video_path = getFilePath(os.path.join('temp_split','part2'),True)
             if split_video_path:
@@ -190,7 +190,7 @@ def split(request):
                 'part_1':getFilePath(os.path.join('temp_split','part1'),False),
                 'part_2':getFilePath(os.path.join('temp_split','part2'),False)
             }   
-            return render(request,'editor/trim.html',context)
+            return render(request,'editor/split.html',context)
         else:
             split_time = time_to_seconds(request.POST['split_time'])
             input_file_path = getFilePath('split',True)
@@ -204,7 +204,7 @@ def split(request):
                     'part_1':None,
                     'part_2':None,
                 }   
-                return render(request,'editor/trim.html',context)
+                return render(request,'editor/split.html',context)
             video = VideoFileClip(input_file_path)
             part1 = video.subclip(0, split_time)
             part2 = video.subclip(split_time, duration)
@@ -239,4 +239,57 @@ def split(request):
     return render(request,'editor/split.html',context)
 
 def merge(request):
-    return render(request,'editor/merge.html')
+    if request.method == 'POST':
+        if 'video_file1' in request.FILES:
+            video1 = request.FILES['video_file1']
+            video2 = request.FILES['video_file2']
+            fs = FileSystemStorage()
+            video_path1 = fs.save(os.path.join('merge', 'part1',video1.name), video1)
+            video_path2 = fs.save(os.path.join('merge', 'part2',video2.name), video2)
+            video1_clip = VideoFileClip(os.path.join(settings.MEDIA_ROOT,video_path1))
+            video2_clip = VideoFileClip(os.path.join(settings.MEDIA_ROOT,video_path2))
+            # Merge the two video clips
+            final_video = concatenate_videoclips([video1_clip, video2_clip])
+            # Save the final video to the output path
+            final_video.write_videofile(os.path.join(settings.MEDIA_ROOT,'temp_merge','output.mp4'),codec="libx264")
+            context = {
+                'vids_not_merged':False,
+                'video_preview_url':getFilePath('temp_merge',False)
+            }
+            return render(request,'editor/merge.html',context)
+        elif 'reset' in request.POST:
+            context={
+                'vids_not_merged':True,
+                'video_preview_url':None,
+            }
+            cleanDir('temp_merge')
+            cleanDir(os.path.join('merge','part1'))
+            cleanDir(os.path.join('merge','part2'))
+            return render(request,'editor/merge.html', context)
+        elif 'download' in request.POST:
+            merged_video_path = getFilePath('temp_merge',True)
+            if merged_video_path:
+                with open(merged_video_path, 'rb') as video_file:
+                    fl_path =  merged_video_path
+                    filename = os.path.basename(fl_path)  
+                    fl = open(fl_path, 'rb')
+                    response = HttpResponse(fl, content_type='video/mp4')
+                    response['Content-Disposition'] = "attachment; filename=%s" % filename
+                    return response
+            context={
+                'vids_not_merged':False,
+                'video_preview_url':getFilePath('temp_trim',False),
+            }   
+            return render(request,'editor/merge.html',context)
+    existsDir('temp_merge')
+    existsDir('merge')
+    existsDir(os.path.join('merge','part1'))
+    existsDir(os.path.join('merge','part2'))
+    context = {
+        'vids_not_merged':True,
+        'video_preview_url':None
+    }
+    if len(os.listdir(os.path.join(settings.MEDIA_ROOT,'temp_merge')))!=0:
+        context['vids_not_merged']=False
+        context['video_preview_url']=getFilePath('temp_merge',False)
+    return render(request,'editor/merge.html',context)
