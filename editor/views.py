@@ -40,9 +40,7 @@ def trim_video(input_file, output_file, start_time, end_time):
 def home(request):
     return render(request,'editor/home.html')
 
-def trim(request):
-    if 'trimed_count' not in request.session:
-        request.session['trimed_count'] = 0 
+def trim(request):  
     if request.method == 'POST':
         if 'video_file' in request.FILES:
             uploaded_video = request.FILES['video_file']
@@ -61,7 +59,6 @@ def trim(request):
             }               
             return render(request, 'trim.html', context)
         elif 'reset' in request.POST:
-            request.session['trimed_count'] = 0
             context={
                 'vid_not_selected':True,
                 'not_trimed':True,     
@@ -71,17 +68,8 @@ def trim(request):
             return render(request,'editor/trim.html', context)
         elif 'download' in request.POST:
             trimmed_video_path = getFilePath('temp_trim',True)
-
             if trimmed_video_path:
                 with open(trimmed_video_path, 'rb') as video_file:
-                    # Use FileResponse to send the file for download
-                    # response = FileResponse(video_file)
-                    # Set content type for the response
-                    # response['Content-Type'] = 'video/mp4'
-                    # Set content-disposition to trigger download
-                    # response['Content-Disposition'] = f'attachment; filename="{os.path.basename(trimmed_video_path)}"'
-
-
                     fl_path =  trimmed_video_path
                     filename = os.path.basename(fl_path)  
                     fl = open(fl_path, 'rb')
@@ -117,8 +105,6 @@ def trim(request):
                 return render(request,'editor/trim.html',context)
             existsDir('temp_trim')
             output_file_path = os.path.join(settings.MEDIA_ROOT,'temp_trim',os.path.basename(input_file_path).split('/')[-1])
-            request.session['trimed_count'] += 1
-            output_file_path = f"{output_file_path[:-4]}-v{request.session['trimed_count']}.mp4"
             trim_video(input_file_path,output_file_path,start_time,end_time)
             context={
                 'vid_not_selected':False,
@@ -142,7 +128,115 @@ def trim(request):
     return render(request, 'editor/trim.html', context)
 
 def split(request):
-    return render(request,'editor/split.html')
+    if request.method=='POST':
+        if 'video_file' in request.FILES:
+            uploaded_video = request.FILES['video_file']
+            fs = FileSystemStorage()
+            existsDir('split')
+            if len(os.listdir(os.path.join(settings.MEDIA_ROOT,'split')))!=0:
+                cleanDir('split')
+            filename = fs.save(os.path.join('split', uploaded_video.name), uploaded_video)
+            video_url = fs.url(filename)
+            context = {
+                'vid_not_selected': False,
+                'notSplit':True,
+                'video_preview_url': video_url,
+                'part_1':None,
+                'part_2':None,
+            }               
+            return render(request, 'editor/split.html', context)
+        elif 'reset' in request.POST:
+            context={
+                'vid_not_selected':True,
+                'notSplit':True,     
+                'video_preview_url':None,
+                'part_1':None,
+                'part_2':None,
+            }
+            cleanDir('split')
+            cleanDir(os.path.join('temp_split','part1'))
+            cleanDir(os.path.join('temp_split','part2'))
+            return render(request,'editor/split.html', context)
+        elif 'download1' in request.POST:
+            split_video_path = getFilePath(os.path.join('temp_split','part1'),True)
+            if split_video_path:
+                with open(split_video_path, 'rb') as video_file:
+                    fl_path =  split_video_path
+                    filename = os.path.basename(fl_path)  
+                    fl = open(fl_path, 'rb')
+                    response = HttpResponse(fl, content_type='video/mp4')
+                    response['Content-Disposition'] = "attachment; filename=%s" % filename
+                    return response
+            context={
+                'vid_not_selected':False,
+                'notSplit':False,
+                'part_1':getFilePath(os.path.join('temp_split','part1'),False),
+                'part_2':getFilePath(os.path.join('temp_split','part2'),False)
+            }   
+            return render(request,'editor/trim.html',context)
+        elif 'download2' in request.POST:
+            split_video_path = getFilePath(os.path.join('temp_split','part2'),True)
+            if split_video_path:
+                with open(split_video_path, 'rb') as video_file:
+                    fl_path =  split_video_path
+                    filename = os.path.basename(fl_path)  
+                    fl = open(fl_path, 'rb')
+                    response = HttpResponse(fl, content_type='video/mp4')
+                    response['Content-Disposition'] = "attachment; filename=%s" % filename
+                    return response
+            context={
+                'vid_not_selected':False,
+                'notSplit':False,
+                'part_1':getFilePath(os.path.join('temp_split','part1'),False),
+                'part_2':getFilePath(os.path.join('temp_split','part2'),False)
+            }   
+            return render(request,'editor/trim.html',context)
+        else:
+            split_time = time_to_seconds(request.POST['split_time'])
+            input_file_path = getFilePath('split',True)
+            duration = getDuration(input_file_path)
+            if split_time > duration:
+                messages.error(request,f"Duration : {duration} smaller than split time:{split_time}")
+                context = {
+                    'vid_not_selected':False,
+                    'notSplit':True,
+                    'video_preview_url':getFilePath('split',False),
+                    'part_1':None,
+                    'part_2':None,
+                }   
+                return render(request,'editor/trim.html',context)
+            video = VideoFileClip(input_file_path)
+            part1 = video.subclip(0, split_time)
+            part2 = video.subclip(split_time, duration)
+            part1.write_videofile(os.path.join(settings.MEDIA_ROOT,'temp_split','part1',os.path.basename(input_file_path).split('/')[-1]))
+            part2.write_videofile(os.path.join(settings.MEDIA_ROOT,'temp_split','part2',os.path.basename(input_file_path).split('/')[-1]))
+            context = {
+                'vid_not_selected':False,
+                'notSplit':False,
+                'video_preview_url':None,
+                'part_1':getFilePath(os.path.join('temp_split','part1'),False),
+                'part_2':getFilePath(os.path.join('temp_split','part2'),False),
+            } 
+            return render(request,'editor/split.html',context)
+    context = {
+        'vid_not_selected':True,
+        'notSplit':True,
+        'video_preview_url':None,
+        'part_1':None,
+        'part_2':None,
+    }
+    existsDir('split')
+    existsDir('temp_split')
+    existsDir(os.path.join('temp_split','part1'))
+    existsDir(os.path.join('temp_split','part2'))
+    if len(os.listdir(os.path.join(settings.MEDIA_ROOT,'split')))!=0:
+        context['vid_not_selected']=False
+        context['video_preview_url']=getFilePath('split',False)
+    if len(os.listdir(os.path.join(settings.MEDIA_ROOT,'temp_split','part1')))!=0:
+        context['notSplit']=False
+        context['part_1']=getFilePath(os.path.join('temp_split','part1'),False)
+        context['part_2']=getFilePath(os.path.join('temp_split','part2'),False)
+    return render(request,'editor/split.html',context)
 
 def merge(request):
     return render(request,'editor/merge.html')
