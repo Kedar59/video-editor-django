@@ -1,101 +1,146 @@
 {% extends 'main.html' %} {% load static %} {% block css %}
-<link rel="stylesheet" href="{% static 'css/navbar.css' %}" />
-<link rel="stylesheet" href="{% static 'css/home.css' %}" />
-<link href="https://vjs.zencdn.net/8.5.2/video-js.css" rel="stylesheet" />
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" type="text/css" href="{% static 'css/navbar.css' %}" />
+  <link rel="stylesheet" type="text/css" href="{% static 'css/home.css' %}" />
+  <link rel="stylesheet" type="text/css" href="{% static 'css/trim.css' %}" />
+  <link href="https://vjs.zencdn.net/8.5.2/video-js.css" rel="stylesheet" />
+  <title>Trim</title>
+</head>
 
 {% endblock css %} {% block content %}
-<h1>trim</h1>
+<h1 class="title">Trim</h1>
 <!-- trim.html -->
 {% if vid_not_selected %}
 <!-- Video selection form -->
-<form method="POST" enctype="multipart/form-data" action="{% url 'trim' %}">
+<form
+  method="POST"
+  enctype="multipart/form-data"
+  action="{% url 'trim' %}"
+  class="vidForm"
+>
   {% csrf_token %}
-  <input type="file" name="video_file" accept=".mp4" />
-  <button type="submit">Select Video</button>
+  <!-- <input type="file" name="video_file" accept=".mp4" /> -->
+  <div class="selectVid">
+    <label class="custom-file-upload fu2">
+      <input
+        type="file"
+        name="video_file"
+        accept=".mp4"
+        id="videoFileInput"
+        onchange="form.submit()"
+        hidden
+      />
+      Upload Video
+    </label>
+  </div>
+
+  <!-- <button type="submit" id="submitBtn" class="submit">Select Video</button> -->
 </form>
-<p>Don't show preview</p>
+<!-- <p>Don't show preview</p> -->
 {% elif not_trimed and not vid_not_selected %}
 <!-- Start and end time form with video preview -->
-<form method="POST" enctype="multipart/form-data" action="{% url 'trim' %}">
-  {% csrf_token %}
-  <label for="start_time">Start Time (hh:mm:ss):</label>
-  <input
-    type="text"
-    name="start_time"
-    id="start_time"
-    pattern="([01]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]"
-    title="Enter time in hh:mm:ss format"
-    required
-  />
-  <label for="end_time">End Time (hh:mm:ss):</label>
-  <input
-    type="text"
-    name="end_time"
-    id="end_time"
-    pattern="([01]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]"
-    title="Enter time in hh:mm:ss format"
-    required
-  />
-  <button type="submit">Trim Video</button>
-</form>
-{% if not vid_not_selected %}
-<h3>{{ video_preview_url }}</h3>
-<h3>{{ duration }}</h3>
-<video
-  id="trim-video"
-  class="video-js vjs-default-skin"
-  controls
-  preload="auto"
-  width="640"
-  height="264"
-  data-setup="{}"
->
-  <source src="{{ video_preview_url }}" type="video/mp4" />
-</video>
-{% endif %}
-<form method="POST" action="{% url 'trim' %}">
-  {% csrf_token %}
-  <input type="text" hidden name="reset" />
-  <button type="submit" name="choose_another_file">Choose another video</button>
-</form>
+<div class="prev">
+  <div>
+    <form
+      method="POST"
+      enctype="multipart/form-data"
+      action="{% url 'trim' %}"
+      class="previewForm"
+    >
+      {% csrf_token %}
+      <label for="start_time">Start Time (hh:mm:ss):</label>
+      <input
+        type="text"
+        name="start_time"
+        id="start_time"
+        pattern="([01]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]"
+        title="Enter time in hh:mm:ss format"
+        placeholder="Start"
+        required
+      />
+      <label for="end_time">End Time (hh:mm:ss):</label>
+      <input
+        type="text"
+        name="end_time"
+        id="end_time"
+        pattern="([01]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]"
+        title="Enter time in hh:mm:ss format"
+        placeholder="End"
+        required
+      />
+      <button type="submit">Trim Video</button>
+    </form>
+    <form method="POST" action="{% url 'trim' %}" class="newVid">
+      {% csrf_token %}
+      <input type="text" hidden name="reset" />
+      <button type="submit" name="choose_another_file">
+        Choose another video
+      </button>
+    </form>
+  </div>
+  {% if not vid_not_selected %}
+  <!-- <h3>{{ video_preview_url }}</h3>
+  <h3>{{ duration }}</h3> -->
+  <video
+    id="trim-video"
+    class="video-js vjs-default-skin"
+    controls
+    preload="auto"
+    width="640"
+    height="264"
+    data-setup="{}"
+  >
+    <source src="{{ video_preview_url }}" type="video/mp4" />
+  </video>
+  {% endif %}
+</div>
+
 {% else %}
 <!-- Video preview (if available) -->
-<form method="POST" enctype="multipart/form-data" action="{% url 'trim' %}">
-  {% csrf_token %}
-  <input type="text" name="download" hidden />
-  <button type="submit">Download Trimmed File</button>
-</form>
-{% if not vid_not_selected %}
-<h3>{{ video_preview_url }}</h3>
-<h3>{{ duration }}</h3>
-<video
-  id="trim-video"
-  class="video-js vjs-default-skin"
-  controls
-  preload="auto"
-  width="640"
-  height="264"
-  data-setup="{}"
->
-  <source src="{{ video_preview_url }}" type="video/mp4" />
-  <!-- <source src="{{ video_preview_url }}" type="video/webm" />
+<div class="prev">
+  <div>
+    <form method="POST" enctype="multipart/form-data" action="{% url 'trim' %}">
+      {% csrf_token %}
+      <input type="text" name="download" hidden />
+      <button type="submit">Download Trimmed File</button>
+    </form>
+
+    <form method="POST" action="{% url 'trim' %}">
+      {% csrf_token %}
+      <input type="text" hidden name="reset" />
+      <button type="submit" name="choose_another_file">
+        Discard current video
+      </button>
+    </form>
+    <!-- <p>Video file selected</p> -->
+  </div>
+  <video
+    id="trim-video"
+    class="video-js vjs-default-skin"
+    controls
+    preload="auto"
+    width="640"
+    height="264"
+    data-setup="{}"
+  >
+    <source src="{{ video_preview_url }}" type="video/mp4" />
+    <!-- <source src="{{ video_preview_url }}" type="video/webm" />
         <p class="vjs-no-js">
             To view this video please enable JavaScript, and consider upgrading to a
             web browser that
             <a href="https://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>
         </p> -->
-</video>
-{% endif %}
-<p>Video file selected</p>
+  </video>
+</div>
 
-<form method="POST" action="{% url 'trim' %}">
-  {% csrf_token %}
-  <input type="text" hidden name="reset" />
-  <button type="submit" name="choose_another_file">
-    Discard current video
-  </button>
-</form>
-{% endif %}
+{% if not vid_not_selected %}
+<!-- <h3>{{ video_preview_url }}</h3>
+<h3>{{ duration }}</h3> -->
+
+{% endif %} {% endif %}
 <script src="https://vjs.zencdn.net/8.5.2/video.min.js"></script>
 <script>
   videojs("trim-video", {}, function () {

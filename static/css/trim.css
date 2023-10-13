@@ -1,0 +1,85 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+
+.title {
+  font-size: 3rem;
+  text-align: center;
+  margin: 10px 0px 20px 0;
+  color: teal;
+}
+
+.custom-file-upload {
+  border: none;
+  outline: none;
+  background-color: teal;
+  color: white;
+  padding: 10px 20px;
+  font-size: 1em;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.selectVid {
+  text-align: center;
+}
+
+.vidForm {
+  padding: 20px;
+}
+
+button {
+  border: none;
+  outline: none;
+  background-color: teal;
+  color: white;
+  padding: 10px 20px;
+  font-size: 1em;
+  cursor: pointer;
+  border-radius: 5px;
+  font-family: cursive;
+  margin: 20px 0;
+}
+
+.prev {
+  display: flex;
+  justify-content: space-evenly;
+}
+
+.newVid {
+  /* border: 2px solid red; */
+  font-size: 1.5rem;
+  padding: 0px 10px;
+}
+
+.previewForm {
+  /* border: 2px solid red; */
+  display: flex;
+  flex-direction: column;
+  font-size: 1.5rem;
+  padding: 0 10px;
+}
+
+input {
+  outline: none;
+  border: none;
+  font-size: 1.25rem;
+  margin: 10px 0px;
+  border-bottom: 2px solid teal;
+  padding: 3px 0px;
+  font-family: cursive;
+}
+
+::placeholder {
+  font-size: 1.25rem;
+  font-family: cursive;
+  padding: 3px 0px;
+}
+
+video {
+  object-fit: contain;
+  height: 62vh !important;
+  box-shadow: 2px 5px 15px -5px rgba(143, 143, 143, 0.69);
+  background-color: #ffffff !important;
+}

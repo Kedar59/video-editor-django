@@ -1,73 +1,149 @@
-{% extends 'main.html' %}
-{% load static %}
+{% extends 'main.html' %} {% load static %} {% block css %}
 
-{% block css %}
-<link rel="stylesheet" href="{% static 'css/navbar.css' %}">
-<link rel="stylesheet" href="{% static 'css/home.css' %}">
-<link href="https://vjs.zencdn.net/8.5.2/video-js.css" rel="stylesheet" />
-{% endblock css %}
-{% block content %}
-<h1>split</h1>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" type="text/css" href="{% static 'css/navbar.css' %}" />
+  <link rel="stylesheet" type="text/css" href="{% static 'css/home.css' %}" />
+  <link rel="stylesheet" type="text/css" href="{% static 'css/split.css' %}" />
+  <link href="https://vjs.zencdn.net/8.5.2/video-js.css" rel="stylesheet" />
+  <title>Split</title>
+</head>
 
-{% if vid_not_selected %} <!-- select video screen -->
-    <form method="POST" enctype="multipart/form-data" action="{% url 'split' %}">
-        {% csrf_token %}
-        <input type="file" name="video_file" accept=".mp4" />
-        <button type="submit">Select Video</button>
+{% endblock css %} {% block content %}
+<h1 class="title">Split</h1>
+
+{% if vid_not_selected %}
+<!-- select video screen -->
+<form
+  method="POST"
+  enctype="multipart/form-data"
+  action="{% url 'split' %}"
+  class="vidForm"
+>
+  {% csrf_token %}
+  <div class="selectVid">
+    <label class="custom-file-upload fu2">
+      <input
+        type="file"
+        name="video_file"
+        accept=".mp4"
+        id="videoFileInput"
+        onchange="form.submit()"
+        hidden
+      />
+      Upload Video
+    </label>
+  </div>
+</form>
+{% elif notSplit and not vid_not_selected %}
+<!-- Select split time stamp screen -->
+<div class="prev">
+  <div>
+    <form
+      method="POST"
+      enctype="multipart/form-data"
+      action="{% url 'split' %}"
+      class="previewForm"
+    >
+      {% csrf_token %}
+      <label for="start_time">Split Time (hh:mm:ss):</label>
+      <input
+        type="text"
+        name="split_time"
+        id="start_time"
+        pattern="([01]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]"
+        title="Enter time in hh:mm:ss format"
+        placeholder="Split Time"
+        required
+      />
+      <button type="submit">Split Video</button>
     </form>
-{% elif notSplit and not vid_not_selected %} <!-- Select split time stamp screen -->
-    <form method="POST" enctype="multipart/form-data" action="{% url 'split' %}">
-        {% csrf_token %}
-        <label for="start_time">Split Time (hh:mm:ss):</label>
-        <input type="text" name="split_time" id="start_time" pattern="([01]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]"
-            title="Enter time in hh:mm:ss format" required />
-        <button type="submit">Split Video</button>
+    <form method="POST" action="{% url 'split' %}" class="newVid">
+      {% csrf_token %}
+      <input type="text" hidden name="reset" />
+      <button type="submit" name="choose_another_file">
+        Choose another video
+      </button>
     </form>
-    {% if not vid_not_selected %}
-        <h3>{{ video_preview_url }}</h3>
-        <h3>{{ duration }}</h3>
-        <video id="trim-video" class="video-js vjs-default-skin" controls preload="auto" width="640" height="264"
-            data-setup="{}">
-            <source src="{{ video_preview_url }}" type="video/mp4" />
-        </video>
-    {% endif %}
-    <form method="POST" action="{% url 'split' %}">
-        {% csrf_token %}
-        <input type="text" hidden name="reset" />
-        <button type="submit" name="choose_another_file">Choose another video</button>
-    </form>
-{% else %} <!-- Preview and download split video screen -->
-    <form method="POST" action="{% url 'split' %}">
+  </div>
+  <video
+    id="trim-video"
+    class="video-js vjs-default-skin"
+    controls
+    preload="auto"
+    width="640"
+    height="264"
+    data-setup="{}"
+  >
+    <source src="{{ video_preview_url }}" type="video/mp4" />
+  </video>
+</div>
+
+{% if not vid_not_selected %}
+<!-- <h3>{{ video_preview_url }}</h3>
+<h3>{{ duration }}</h3> -->
+
+{% endif %} {% else %}
+<!-- Preview and download split video screen -->
+{% if not vid_not_selected %}
+<!-- <h3>{{ part_1 }}</h3> -->
+<div class="partp">
+  <div class="prev imp">
+    <div class="pd">
+      <form method="POST" action="{% url 'split' %}">
         {% csrf_token %}
         <input type="text" name="download1" hidden />
         <button type="submit">Download Starting part of split File</button>
-    </form>
-    <form method="POST" action="{% url 'split' %}">
+      </form>
+    </div>
+    <video
+      id="trim-video"
+      class="video-js vjs-default-skin"
+      controls
+      preload="auto"
+      width="640"
+      height="264"
+      data-setup="{}"
+    >
+      <source src="{{ part_1 }}" type="video/mp4" />
+    </video>
+  </div>
+
+  {% endif %} {% if not vid_not_selected %}
+  <!-- <h3>{{ part_2 }}</h3> -->
+  <div class="prev imp">
+    <div class="pd">
+      <form method="POST" action="{% url 'split' %}">
         {% csrf_token %}
         <input type="text" name="download2" hidden />
         <button type="submit">Download Ending part of split File</button>
-    </form>
-    {% if not vid_not_selected %}
-        <h3>{{ part_1 }}</h3>
-        <video id="trim-video" class="video-js vjs-default-skin" controls preload="auto" width="640" height="264"
-            data-setup="{}">
-            <source src="{{ part_1 }}" type="video/mp4" />
-        </video>
-    {% endif %}
-    {% if not vid_not_selected %}
-        <h3>{{ part_2 }}</h3>
-        <video id="trim-video" class="video-js vjs-default-skin" controls preload="auto" width="640" height="264"
-            data-setup="{}">
-            <source src="{{ part_2 }}" type="video/mp4" />
-        </video>
-    {% endif %}
-    <p>Video file selected</p>
-    <form method="POST" action="{% url 'split' %}">
-        {% csrf_token %}
-        <input type="text" hidden name="reset" />
-        <button type="submit" name="choose_another_file">Discard current video</button>
-    </form>
-{% endif %}
+      </form>
+    </div>
+    <video
+      id="trim-video"
+      class="video-js vjs-default-skin"
+      controls
+      preload="auto"
+      width="640"
+      height="264"
+      data-setup="{}"
+    >
+      <source src="{{ part_2 }}" type="video/mp4" />
+    </video>
+  </div>
+  {% endif %}
+  <form method="POST" action="{% url 'split' %}">
+    {% csrf_token %}
+    <input type="text" hidden name="reset" />
+    <button type="submit" name="choose_another_file">
+      Discard current video
+    </button>
+  </form>
+  {% endif %}
+</div>
+<!-- <p>Video file selected</p> -->
+
 <script src="{% static 'js/home.js' %}"></script>
 <script src="https://vjs.zencdn.net/8.5.2/video.min.js"></script>
 <script>
