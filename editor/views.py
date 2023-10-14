@@ -59,6 +59,10 @@ def trim(request):
             }               
             return render(request, 'trim.html', context)
         elif 'reset' in request.POST:
+            video_path = getFilePath('trim',True)
+            clip = VideoFileClip(video_path)
+            clip.close()
+
             context={
                 'vid_not_selected':True,
                 'not_trimed':True,     
