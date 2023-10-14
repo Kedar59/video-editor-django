@@ -79,7 +79,6 @@ input {
 
 video {
   object-fit: contain;
-  height: 62vh !important;
   box-shadow: 2px 5px 15px -5px rgba(143, 143, 143, 0.69);
   background-color: #ffffff !important;
 }
