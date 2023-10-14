@@ -1,0 +1,56 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+
+.title {
+  font-size: 3rem;
+  text-align: center;
+  margin: 10px 0px 20px 0;
+  color: teal;
+}
+
+.custom-file-upload {
+  border: none;
+  outline: none;
+  background-color: teal;
+  color: white;
+  padding: 10px 20px;
+  font-size: 1em;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+button {
+  border: none;
+  outline: none;
+  background-color: teal;
+  color: white;
+  padding: 10px 20px;
+  font-size: 1em;
+  cursor: pointer;
+  border-radius: 5px;
+  font-family: cursive;
+  margin: 20px 0;
+}
+
+.vidForm {
+  padding: 20px;
+  border: 2px solid red;
+  text-align: center;
+}
+
+.fileUpload {
+  margin: 2rem;
+}
+
+.prev {
+  display: flex;
+  justify-content: space-evenly;
+}
+
+video {
+  object-fit: contain;
+  box-shadow: 2px 5px 15px -5px rgba(143, 143, 143, 0.69);
+  background-color: #ffffff !important;
+}

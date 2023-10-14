@@ -1,47 +1,85 @@
-{% extends 'main.html' %}
-{% load static %}
-
-{% block css %}
-<link rel="stylesheet" href="{% static 'css/navbar.css' %}">
-<link rel="stylesheet" href="{% static 'css/home.css' %}">
+{% extends 'main.html' %} {% load static %} {% block css %}
+<link rel="stylesheet" href="{% static 'css/navbar.css' %}" />
+<link rel="stylesheet" href="{% static 'css/home.css' %}" />
+<link rel="stylesheet" href="{% static 'css/merge.css' %}" />
 <link href="https://vjs.zencdn.net/8.5.2/video-js.css" rel="stylesheet" />
-{% endblock css %}
-{% block content %}
-<h1>merge</h1>
-{% if vids_not_merged %} <!-- select video screen -->
-    <form method="POST" enctype="multipart/form-data" action="{% url 'merge' %}">
-        {% csrf_token %}
-        <label for="video1">Select 1st Video:</label>
-        <input type="file" name="video_file1" accept=".mp4" required />
-        <label for="video2">Select 2nd Video:</label>
-        <input type="file" name="video_file2" accept=".mp4" required />
-        <button type="submit">Merge</button>
-    </form>
-{% else %} <!-- Preview and download split video screen -->
+{% endblock css %} {% block content %}
+<h1 class="title">Merge</h1>
+{% if vids_not_merged %}
+<!-- select video screen -->
+<form
+  method="POST"
+  enctype="multipart/form-data"
+  action="{% url 'merge' %}"
+  class="vidForm"
+>
+  {% csrf_token %}
+  <div class="fileUpload">
+    <label class="custom-file-upload fu2">
+      <input
+        type="file"
+        name="video_file1"
+        accept=".mp4"
+        id="videoFileInput"
+        hidden
+      />
+      Select 1st Video:
+    </label>
+  </div>
+  <div class="fileUpload">
+    <label class="custom-file-upload fu2">
+      <input
+        type="file"
+        name="video_file2"
+        accept=".mp4"
+        id="videoFileInput"
+        hidden
+      />
+      Select 2nd Video:
+    </label>
+  </div>
+  <button type="submit">Merge</button>
+</form>
+{% else %}
+<!-- Preview and download split video screen -->
+<div class="prev">
+  <div class="prevForm">
     <form method="POST" action="{% url 'merge' %}">
-        {% csrf_token %}
-        <input type="text" name="download" hidden />
-        <button type="submit">Download Merged video</button>
+      {% csrf_token %}
+      <input type="text" name="download" hidden />
+      <button type="submit">Download Merged video</button>
     </form>
-    {% if not vid_not_merged %}
-    <h3>{{ video_preview_url }}</h3>
-    <video id="trim-video" class="video-js vjs-default-skin" controls preload="auto" width="640" height="264"
-        data-setup="{}">
-        <source src="{{ video_preview_url }}" type="video/mp4" />
-    </video>
+    <form method="POST" action="{% url 'merge' %}">
+      {% csrf_token %}
+      <input type="text" hidden name="reset" />
+      <button type="submit" name="choose_another_file">
+        Discard current video
+      </button>
+    </form>
     {% endif %}
-    <p>Video file selected</p>
-    <form method="POST" action="{% url 'merge' %}">
-        {% csrf_token %}
-        <input type="text" hidden name="reset" />
-        <button type="submit" name="choose_another_file">Discard current video</button>
-    </form>
-{% endif %}
+  </div>
+  {% if not vid_not_merged %}
+  <video
+    id="trim-video"
+    class="video-js vjs-default-skin"
+    controls
+    preload="auto"
+    width="640"
+    height="350"
+    data-setup="{}"
+  >
+    <source src="{{ video_preview_url }}" type="video/mp4" />
+  </video>
+  {% endif %}
+</div>
+
+<!-- <p>Video file selected</p> -->
+
 <script src="{% static 'js/home.js' %}"></script>
 <script src="https://vjs.zencdn.net/8.5.2/video.min.js"></script>
 <script>
-    videojs("trim-video", {}, function () {
-        // Video.js is ready
-    });
+  videojs("trim-video", {}, function () {
+    // Video.js is ready
+  });
 </script>
 {% endblock content %}

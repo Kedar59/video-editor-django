@@ -251,7 +251,7 @@ def merge(request):
             # Merge the two video clips
             final_video = concatenate_videoclips([video1_clip, video2_clip])
             # Save the final video to the output path
-            final_video.write_videofile(os.path.join(settings.MEDIA_ROOT,'temp_merge','output.mp4'),codec="libx264")
+            final_video.write_videofile(os.path.join(settings.MEDIA_ROOT,'temp_merge','output.mp4'), threads = 4, fps=24,codec="libx264")
             context = {
                 'vids_not_merged':False,
                 'video_preview_url':getFilePath('temp_merge',False)
