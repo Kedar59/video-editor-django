@@ -297,3 +297,4 @@ def merge(request):
         context['vids_not_merged']=False
         context['video_preview_url']=getFilePath('temp_merge',False)
     return render(request,'editor/merge.html',context)
+    #video editor 
